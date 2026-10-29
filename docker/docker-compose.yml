@@ -1,0 +1,10 @@
+services:
+  stowsim:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: stowsim_env
+    volumes:
+      - ..:/workspace
+    working_dir: /workspace
+    tty: true

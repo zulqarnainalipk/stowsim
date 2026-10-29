@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stowsim"
+version = "0.1.0"
+description = "StowSim: a physics-based simulator for online and offline 3-D baggage stowage"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = [
+    "gymnasium==1.2.3",
+    "pybullet==3.2.7",
+    "pillow>=10.3.0",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = ["openpyxl>=3.1"]
+
+[tool.setuptools.packages.find]
+include = ["stowsim*"]

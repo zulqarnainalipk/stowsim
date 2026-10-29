@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StowSim Visualizer</title>
+<style>
+:root{--bg:#f3f4f6;--fg:#111827;--mut:#6b7280;--card:#fff;--line:#e5e7eb;--acc:#2563eb;--accfg:#fff;--soft:#3b82f6;--prio:#16a34a;--hard:#d6a15f;--bad:#dc2626;--good:#16a34a;--warn:#d97706;--shadow:0 1px 3px rgba(0,0,0,.08)}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--fg:#e5e7eb;--mut:#9ca3af;--card:#181b22;--line:#2a2f3a;--acc:#60a5fa;--accfg:#0b1220;--soft:#60a5fa;--prio:#4ade80;--hard:#c08a4e;--bad:#f87171;--good:#4ade80;--warn:#fbbf24;--shadow:none}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,Segoe UI,sans-serif}
+header{padding:10px 18px;border-bottom:1px solid var(--line);background:var(--card);display:flex;gap:18px;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:5}
+h1{font-size:17px;margin:0}h2{font-size:13px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+.prog{flex:1;min-width:220px}.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc);transition:width .4s}
+.kpis{display:flex;gap:16px;flex-wrap:wrap}.kpi b{font-size:18px;display:block;line-height:1}.kpi span{font-size:11px;color:var(--mut)}
+main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;padding:14px 18px;max-width:1500px;margin:auto}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;box-shadow:var(--shadow)}
+canvas{width:100%;display:block;border-radius:8px;background:var(--bg);border:1px solid var(--line)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}.cap{font-size:12px;color:var(--mut);margin:0 0 4px}
+.step{display:flex;gap:8px;align-items:center;margin:0 0 8px}.step i{background:var(--acc);color:var(--accfg);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;font-size:12px;flex:none}
+.pool{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:230px;overflow:auto}
+.bag{border:2px solid var(--line);border-radius:8px;padding:6px 8px;cursor:pointer;background:var(--card);font-size:12px}.bag.sel{border-color:var(--acc);box-shadow:0 0 0 2px rgba(37,99,235,.25)}
+.bag .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.tag{font-size:10px;padding:1px 5px;border-radius:8px;background:var(--line);color:var(--mut);margin-left:3px}
+.ori{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.ori button{padding:6px 4px;font-size:11px}
+.ori button.on{border-color:var(--acc);background:rgba(37,99,235,.12)}
+label{display:block;font-size:12px;color:var(--mut);margin:8px 0 2px}
+input[type=number],select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg);font:inherit}
+input[type=range]{width:100%}
+button{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);font:inherit;cursor:pointer}
+button:hover{border-color:var(--acc)}button.pri{background:var(--acc);color:var(--accfg);border-color:var(--acc);font-weight:600;width:100%;padding:11px;font-size:15px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+#verdict{padding:9px 11px;border-radius:8px;margin:10px 0;border:1px solid var(--line);font-size:13px}
+#verdict.ok{border-color:var(--good);background:rgba(22,163,74,.1)}#verdict.no{border-color:var(--bad);background:rgba(220,38,38,.08)}
+.hist{max-height:130px;overflow:auto;font-size:12px}.hist div{padding:2px 0;border-bottom:1px dashed var(--line)}
+kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:11px;background:var(--bg)}
+#tip{position:fixed;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12px;display:none;z-index:9;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);padding:9px 16px;border-radius:10px;color:#fff;font-weight:600;display:none;z-index:10}
+.help li{margin:3px 0}details summary{cursor:pointer;font-weight:600}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut)}.legend span i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-2px}
+</style></head><body>
+<header>
+  <h1>StowSim Visualizer</h1>
+  <div class="prog"><div class="kpi"><span>bags loaded</span><b id="k_placed">0 / 0</b></div><div class="bar"><i id="bar" style="width:0"></i></div></div>
+  <div class="kpis">
+    <div class="kpi" title="Volume of loaded bags divided by usable container volume. This is the biggest part of the real score."><b id="k_fill">0</b><span>fill % (main score)</span></div>
+    <div class="kpi" title="Mass-weighted average height of the load. Lower is better."><b id="k_cog">0</b><span>centre of gravity (m)</span></div>
+    <div class="kpi"><b id="k_steps">0</b><span>moves</span></div>
+  </div><div id="msg"></div>
+</header>
+<main>
+<section>
+  <div class="card help"><details id="help" open><summary>How this works — read me first</summary>
+   <ol>
+     <li><b>Goal:</b> load as many bags as possible into the container (the blue-grey box). The container opens at the <b>front</b> (the opening); bags are pushed in from there, so you fill from the <b>back</b> towards the front.</li>
+     <li><b>Pick a bag</b> from the pool (right). Soft bags (blue) must never be buried under hard ones; priority bags (green) belong in the priority container.</li>
+     <li><b>Choose where:</b> click in the <b>Top view</b> to put the bag there (it automatically drops onto whatever is below), or use the arrow keys. A <b style="color:var(--good)">green</b> outline means the move is valid, <b style="color:var(--bad)">red</b> means blocked (the reason is shown).</li>
+     <li>Press <b>Place</b> — the real simulator runs the real checks (inside container? clear insertion path? stays stable?). If rejected the episode ends, so aim for valid green moves.</li>
+     <li>Stuck? <b>Suggest</b> shows the agent's best spots as numbered markers on the top view. <b>Agent step</b> lets the agent move once; <b>Undo</b> takes back your last move.</li>
+   </ol></details></div>
+  <div class="card"><h2>3-D view</h2><canvas id="cv3d" width="900" height="480"></canvas>
+    <div class="legend" style="margin-top:6px"><span><i style="background:var(--hard)"></i>hard bag</span><span><i style="background:var(--soft)"></i>soft bag</span><span><i style="background:var(--prio)"></i>priority bag</span><span><i style="border:2px dashed var(--good)"></i>your preview</span><span><i style="background:#f59e0b"></i>last placed</span>
+    <label style="margin:0;display:inline"><input type="checkbox" id="mirror"> mirror view</label></div></div>
+  <div id="views"></div>
+</section>
+<aside>
+  <div class="card"><div class="step"><i>1</i><b>Pick a bag</b></div><div class="pool" id="pool"></div><div class="cap" id="poolcap"></div></div>
+  <div class="card"><div class="step"><i>2</i><b>Choose how it lies &amp; where</b></div>
+    <div class="ori" id="oriBtns"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><label>Container</label><select id="cont"></select></div><div><label><input type="checkbox" id="autodrop" checked> auto-drop height</label><small class="cap">on: z follows the surface below</small></div></div>
+    <label>x — left ↔ right: <b id="xv"></b></label><input type="range" id="xs" step="0.01"><input type="number" id="x" step="0.01" style="margin-top:3px">
+    <label>y — front (opening) ↔ back: <b id="yv"></b></label><input type="range" id="ys" step="0.01"><input type="number" id="y" step="0.01" style="margin-top:3px">
+    <label>z — height of bag centre: <b id="zv"></b></label><input type="range" id="zs" step="0.01"><input type="number" id="z" step="0.01" style="margin-top:3px">
+    <p class="cap">Keys: <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> move 1 cm (<kbd>Shift</kbd> 5 cm) · <kbd>PgUp</kbd>/<kbd>PgDn</kbd> height · <kbd>R</kbd> rotate · <kbd>[</kbd><kbd>]</kbd> bag</p></div>
+  <div class="card"><div class="step"><i>3</i><b>Place it</b></div><div id="verdict">Pick a bag and a position.</div>
+    <button class="pri" id="place">Place bag <kbd style="color:#111">Enter</kbd></button>
+    <div class="btns"><button id="suggest">💡 Suggest <kbd>S</kbd></button><button id="agent">🤖 Agent step <kbd>A</kbd></button><button id="undo">↩ Undo <kbd>U</kbd></button><button id="reset">⟲ Restart</button><button id="auto">▶ Auto-run agent</button><button id="export">📋 Copy moves</button></div>
+    <div id="last" class="cap" style="margin-top:8px"></div></div>
+  <div class="card"><h2>Moves so far</h2><div class="hist" id="hist"></div></div>
+</aside>
+</main><div id="tip"></div><div id="toast"></div>
+<script>
+let S=null,sel=0,ghost=null,chk=null,chkT=null,timer=null,sugs=[],lastIdx=null;
+const $=id=>document.getElementById(id), css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+async function api(p,o){const r=await fetch(p,o);const j=await r.json();if(j.error){$('msg').innerHTML='<span style="color:var(--bad)">'+j.error.slice(-200)+'</span>';throw new Error(j.error)}$('msg').innerHTML='';return j}
+const colv=b=>b.prio?'--prio':(b.soft?'--soft':'--hard');
+const ORI=[[0,1,2],[0,2,1],[2,1,0],[1,0,2],[1,2,0],[2,0,1]];
+const dimsFor=(p,o)=>ORI[o].map(i=>p.dims[i]);
+const curC=()=>S.containers.find(c=>c.index==+$('cont').value)||S.containers[0];
+function toast(t,ok){const e=$('toast');e.textContent=t;e.style.background=ok?'var(--good)':'var(--bad)';e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',1800)}
+/* ---------- isometric renderer (camera looks from the front-left; back = upper right) ---------- */
+function iso(cv,c,mirror){
+  const g=cv.getContext('2d');g.clearRect(0,0,cv.width,cv.height);
+  const m=mirror?-1:1, sc=Math.min(cv.width/(c.L+c.W)/0.9, cv.height/((c.L+c.W)*0.5+c.H)/1.05)*1.5, ca=Math.cos(Math.PI/6),sa=Math.sin(Math.PI/6);
+  const ox=cv.width/2, oy=cv.height-24;
+  const P=(x,y,z)=>{const X=m*x;return [ox+(X+y*1.0)*ca*sc*0.98, oy-((y-X)*0.0+ (y+(-X))*0 )-( (y*sa-X*(-sa))*0 ) - (z-c.buf)*sc - (y*sa*sc*0.98) + (X*sa*sc*0.0)]};
+  // simpler explicit projection: screen x = (x*m + y)*ca ; screen y = -(z)  - (y - x*m)*sa   (front-left camera)
+  const Q=(x,y,z)=>[ox+(x*m+y)*ca*sc*0.98, oy-(z-c.buf)*sc-(y-x*m)*sa*sc*0.98 + c.L*0.5*sa*sc*0.98*(m>0?0:0)];
+  const X0=-c.L/2,X1=c.L/2,Y0=-c.W/2,Y1=c.W/2,Z0=c.buf,Z1=c.buf+c.H;
+  const poly=(pts,fill,stroke,lw,dash)=>{g.beginPath();pts.forEach((p,i)=>{const q=Q(...p);i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1])});g.closePath();if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw||1;g.setLineDash(dash||[]);g.stroke();g.setLineDash([])}};
+  // floor + back walls (faint)
+  poly([[X0,Y0,Z0],[X1,Y0,Z0],[X1,Y1,Z0],[X0,Y1,Z0]],'rgba(120,130,150,.14)','rgba(120,130,150,.5)');
+  const backX=m>0?X1:X0;
+  poly([[X0,Y1,Z0],[X1,Y1,Z0],[X1,Y1,Z1],[X0,Y1,Z1]],'rgba(120,130,150,.07)','rgba(120,130,150,.45)');
+  poly([[backX,Y0,Z0],[backX,Y1,Z0],[backX,Y1,Z1],[backX,Y0,Z1]],'rgba(120,130,150,.07)','rgba(120,130,150,.45)');
+  // shelf plate
+  if(c.shelf){const zs=c.buf+c.H/2;poly([[X0,c.t,zs],[X1,c.t,zs],[X1,Y1,zs],[X0,Y1,zs]],'rgba(220,38,38,.10)',css('--bad'),1)}
+  poly([[X0,Y0,c.buf+c.H/2],[X0+c.cut_x,Y0,c.buf+c.H/2],[X0+c.cut_x,Y1,c.buf+c.H/2],[X0,Y1,c.buf+c.H/2]],'rgba(220,38,38,.10)',css('--bad'),1);
+  // boxes sorted far->near (far = large y, and towards the back-wall x side)
+  const items=c.bags.map(b=>({b,ghost:false}));
+  const key=o=>{const bx=o.b.c[0]*m;return (o.b.c[1]*1.0 - bx)*-1*0 + (o.b.c[1]) + bx*(-1) ;};
+  items.sort((a,b)=>{const ka=a.b.c[1]-a.b.c[0]*m, kb=b.b.c[1]-b.b.c[0]*m;return kb-ka|| a.b.c[2]-b.b.c[2]});
+  const drawBox=(b,mode)=>{const [cx,cy,cz]=b.c,[hx,hy,hz]=b.h,x0=cx-hx,x1=cx+hx,y0=cy-hy,y1=cy+hy,z0=cz-hz,z1=cz+hz;
+    const base=mode=='last'?'#f59e0b':css(colv(b));
+    const xs=m>0?[x0,x1]:[x1,x0];                 // near-x face is the one facing the camera
+    const face=(pts,shade)=>{poly(pts,mode=='ghost'?null:base,null);if(mode!='ghost'){poly(pts,'rgba(0,0,0,'+shade+')','rgba(0,0,0,.35)')}else poly(pts,null,mode=='ghost'?(chk&&chk.valid?css('--good'):css('--bad')):null,2,[5,3])};
+    face([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],0);                     // top
+    face([[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1]],.18);                    // front (faces the opening)
+    face([[xs[0],y0,z0],[xs[0],y1,z0],[xs[0],y1,z1],[xs[0],y0,z1]],.34);         // near side
+    if(mode!='ghost'){const t=Q(cx,cy,z1);g.fillStyle='rgba(0,0,0,.75)';g.font='bold 11px sans-serif';g.textAlign='center';g.fillText('#'+b.index,t[0],t[1]+(mode=='last'?4:3));g.textAlign='left'}};
+  items.forEach(o=>drawBox(o.b,o.b.index===lastIdx?'last':'n'));
+  if(ghost&&ghost.container==c.index)drawBox(ghost.b,'ghost');
+  // front frame + labels
+  poly([[X0,Y0,Z0],[X1,Y0,Z0],[X1,Y0,Z1],[X0,Y0,Z1]],null,'rgba(120,130,150,.8)',1.5);
+  const f=Q(0,Y0,Z0);g.fillStyle=css('--mut');g.font='12px sans-serif';g.textAlign='center';g.fillText('▲ FRONT (opening — bags enter here)',f[0],f[1]+16);const b=Q(0,Y1,Z1);g.fillText('BACK',b[0]+60*m,b[1]-6);g.textAlign='left';
+}
+/* ---------- 2-D views ---------- */
+const hit=[];
+function view2d(host,c,name,ax,ay,w,h,clickable){
+  const wrap=document.createElement('div');wrap.innerHTML='<div class="cap"><b>'+name+'</b></div>';
+  const cv=document.createElement('canvas');const sc=330/Math.max(w,h);cv.width=Math.round(w*sc)+24;cv.height=Math.round(h*sc)+24;wrap.appendChild(cv);host.appendChild(wrap);
+  const g=cv.getContext('2d');g.font='10px sans-serif';
+  const tx=u=>12+(u+w/2)*sc, ty=u=>ay==1?cv.height-12-(u+h/2)*sc:cv.height-12-(u-c.buf)*sc;
+  g.strokeStyle=css('--mut');g.strokeRect(12,12,w*sc,h*sc);
+  g.strokeStyle=css('--bad');g.lineWidth=1.3;
+  if(ax==0&&ay==2){g.beginPath();g.moveTo(12,ty(c.buf+c.cut_y));g.lineTo(12+c.cut_x*sc,ty(c.buf));g.stroke();g.beginPath();g.moveTo(12,ty(c.buf+c.H/2));g.lineTo(12+c.cut_x*sc,ty(c.buf+c.H/2));g.stroke()}
+  if(ax==1&&ay==2&&c.shelf){g.beginPath();g.moveTo(tx(c.t),ty(c.buf+c.H/2));g.lineTo(12+w*sc,ty(c.buf+c.H/2));g.stroke()}
+  if(ax==0&&ay==1){g.setLineDash([3,3]);g.beginPath();g.moveTo(12+c.cut_x*sc,12);g.lineTo(12+c.cut_x*sc,12+h*sc);g.stroke();g.setLineDash([]);g.fillStyle=css('--mut');g.fillText('BACK',w*sc/2,10);g.fillText('FRONT (opening)',w*sc/2-30,cv.height-1)}
+  if(ax==1&&ay==2){g.fillStyle=css('--mut');g.fillText('FRONT',12,cv.height-1);g.fillText('BACK',w*sc-14,cv.height-1)}
+  g.lineWidth=1;
+  const rect=(b,mode)=>{const x0=tx(b.c[ax]-b.h[ax]),x1=tx(b.c[ax]+b.h[ax]),y0=ty(b.c[ay]+b.h[ay]),y1=ty(b.c[ay]-b.h[ay]);
+    if(mode=='ghost'){const k=chk&&chk.valid?css('--good'):css('--bad');g.fillStyle=k;g.globalAlpha=.22;g.fillRect(x0,y0,x1-x0,y1-y0);g.globalAlpha=1;g.strokeStyle=k;g.lineWidth=2;g.setLineDash([5,3]);g.strokeRect(x0,y0,x1-x0,y1-y0);g.setLineDash([]);g.lineWidth=1;return}
+    g.globalAlpha=.78;g.fillStyle=mode=='last'?'#f59e0b':css(colv(b));g.fillRect(x0,y0,x1-x0,y1-y0);g.globalAlpha=1;g.strokeStyle='rgba(0,0,0,.5)';g.strokeRect(x0,y0,x1-x0,y1-y0);
+    g.fillStyle='rgba(0,0,0,.8)';g.fillText('#'+b.index,x0+3,y0+11);hit.push({cv,x0,y0,x1,y1,b})};
+  c.bags.slice().sort((a,b)=>a.c[ay==1?2:1]-b.c[ay==1?2:1]).forEach(b=>rect(b,b.index===lastIdx?'last':'n'));
+  if(clickable)sugs.filter(s=>s.container==c.index).forEach((s,i)=>{const x=tx(s.x),y=ty(s.y);g.beginPath();g.arc(x,y,9,0,7);g.fillStyle=css('--acc');g.fill();g.fillStyle='#fff';g.font='bold 11px sans-serif';g.textAlign='center';g.fillText(String(sugs.indexOf(s)+1),x,y+4);g.textAlign='left';g.font='10px sans-serif'});
+  if(ghost&&ghost.container==c.index)rect(ghost.b,'ghost');
+  if(clickable){cv.style.cursor='crosshair';cv.onclick=e=>{const r=cv.getBoundingClientRect(),px=(e.clientX-r.left)*cv.width/r.width,py=(e.clientY-r.top)*cv.height/r.height;
+    for(let i=0;i<sugs.length;i++){const s=sugs[i];if(s.container!=c.index)continue;if(Math.hypot(px-tx(s.x),py-ty(s.y))<11){useSug(s);return}}
+    const x=(px-12)/sc-w/2,y=(cv.height-12-py)/sc-h/2;$('cont').value=c.index;setXY(x,y)}}
+}
+function drawAll(){
+  const cv3=$('cv3d');const c=curC();iso(cv3,c,$('mirror').checked);
+  const host=$('views');host.innerHTML='';hit.length=0;
+  S.containers.forEach(c=>{const card=document.createElement('div');card.className='card';card.innerHTML='<h2>Container '+c.index+(c.prio?' · priority':'')+' — '+c.L+' × '+c.W+' × '+c.H+' m'+(c.shelf?' · has shelf':'')+'</h2><div class="grid3"></div>';const v=card.querySelector('.grid3');
+    view2d(v,c,'Top view — click to place',0,1,c.L,c.W,true);view2d(v,c,'Front view (looking in)',0,2,c.L,c.H,false);view2d(v,c,'Side view',1,2,c.W,c.H,false);host.appendChild(card)})
+}
+/* ---------- controls ---------- */
+function setXY(x,y){$('x').value=(+x).toFixed(3);$('y').value=(+y).toFixed(3);syncSliders();if($('autodrop').checked)dropZ();else updGhost()}
+function syncSliders(){const c=curC();const p=S.pool[Math.min(sel,S.pool.length-1)];if(!p)return;const d=dimsFor(p,+oriSel);
+  const sx=$('xs'),sy=$('ys'),sz=$('zs');sx.min=-c.L/2;sx.max=c.L/2;sy.min=-c.W/2;sy.max=c.W/2;sz.min=c.buf;sz.max=c.buf+c.H;sx.value=$('x').value;sy.value=$('y').value;sz.value=$('z').value;
+  $('xv').textContent=(+$('x').value).toFixed(2)+' m';$('yv').textContent=(+$('y').value).toFixed(2)+' m';$('zv').textContent=(+$('z').value).toFixed(2)+' m'}
+let oriSel=0;
+function buildOri(){const p=S.pool[Math.min(sel,S.pool.length-1)];const box=$('oriBtns');box.innerHTML='';if(!p)return;
+  for(let o=0;o<6;o++){const d=dimsFor(p,o);const b=document.createElement('button');b.className=o==oriSel?'on':'';b.innerHTML='<b>'+d.map(v=>v.toFixed(2)).join(' × ')+'</b><br><span style="color:var(--mut)">x·y·z size</span>';b.onclick=()=>{oriSel=o;buildOri();afterChange()};box.appendChild(b)}}
+function afterChange(){syncSliders();if($('autodrop').checked)dropZ();else updGhost()}
+function updGhost(){if(!S||!S.pool.length){ghost=null;drawAll();return}
+  const p=S.pool[Math.min(sel,S.pool.length-1)];const d=dimsFor(p,oriSel);ghost={container:+$('cont').value,b:{c:[+$('x').value,+$('y').value,+$('z').value],h:d.map(v=>v/2)}};syncSliders();drawAll();clearTimeout(chkT);chkT=setTimeout(()=>doCheck(true),150)}
+async function doCheck(withZ){if(!S||!S.pool.length)return;const q='item='+Math.min(sel,S.pool.length-1)+'&cont='+$('cont').value+'&ori='+oriSel+'&x='+$('x').value+'&y='+$('y').value+(withZ?'&z='+$('z').value:'');
+  try{chk=await api('/api/check?'+q)}catch(e){return}showVerdict();drawAll()}
+function showVerdict(){const v=$('verdict');if(!chk){v.className='';return}
+  if(chk.valid){v.className='ok';v.innerHTML='✔ <b>Valid spot.</b> The bag fits, can be pushed in, and rests on '+(chk.frac!=null?(100*chk.frac).toFixed(0)+'% support':'a surface')+'.'}
+  else{v.className='no';v.innerHTML='✘ <b>Blocked:</b> '+(chk.reason||'not allowed here')+'<br><small>Try another spot, rotate the bag, or press Suggest.</small>'}}
+async function dropZ(){const q='item='+Math.min(sel,S.pool.length-1)+'&cont='+$('cont').value+'&ori='+oriSel+'&x='+$('x').value+'&y='+$('y').value;
+  const r=await api('/api/check?'+q);$('z').value=(+r.z).toFixed(3);updGhost()}
+function render(){const st=S.stats;$('k_placed').textContent=st.placed+' / '+st.total;$('bar').style.width=(100*st.placed/Math.max(1,st.total))+'%';$('k_fill').textContent=st.fill.toFixed(1);$('k_cog').textContent=st.cog_z.toFixed(2);$('k_steps').textContent=st.steps;
+  $('pool').innerHTML='';sel=Math.min(sel,Math.max(0,S.pool.length-1));
+  S.pool.forEach((p,i)=>{const d=document.createElement('div');d.className='bag'+(i==sel?' sel':'');d.innerHTML='<span class="sw" style="background:var('+colv(p)+')"></span><b>#'+p.index+'</b>'+(p.soft?'<span class="tag">soft</span>':'')+(p.prio?'<span class="tag">priority</span>':'')+'<br>'+p.dims.map(v=>v.toFixed(2)).join(' × ')+' m · '+p.mass+' kg';d.onclick=()=>{sel=i;oriSel=0;buildOri();render2()};$('pool').appendChild(d)});
+  $('poolcap').textContent=S.pool.length?('You can pick any of the '+S.pool.length+' visible bags — choosing well matters.'):'All bags handled.';
+  if(!$('cont').options.length){S.containers.forEach(c=>{const o=document.createElement('option');o.value=c.index;o.textContent='Container '+c.index+(c.prio?' (priority)':'');$('cont').appendChild(o)})}
+  buildOri();
+  const L=S.last;$('last').innerHTML=L.status?('Last move: <b style="color:var('+(L.ok?'--good':'--bad')+')">'+(L.ok?'accepted':'REJECTED by the validator')+'</b> '+(L.msgs||[]).join(' · ')):'';
+  const h=$('hist');h.innerHTML='';S.history_view.slice().reverse().forEach((a,i)=>{const d=document.createElement('div');d.textContent=(S.history_view.length-i)+'. bag #'+a.bag+' → container '+a.container_idx+' at ('+a.place_pos.map(v=>v.toFixed(2)).join(', ')+') rot '+a.orientation;h.appendChild(d)});
+  render2()}
+function render2(){document.querySelectorAll('.bag').forEach((e,i)=>e.classList.toggle('sel',i==sel));if(S.pool.length){afterChange()}else{ghost=null;drawAll()}}
+async function act(p,o,label){const before=S.stats.placed;S=await api(p,o);sel=0;oriSel=0;sugs=[];lastIdx=S.containers.flatMap(c=>c.bags).map(b=>b.index).filter(i=>!(prevIdx||[]).includes(i)).pop()??lastIdx;prevIdx=S.containers.flatMap(c=>c.bags).map(b=>b.index);render();
+  if(S.last&&S.last.status){toast(S.last.ok?'Bag placed ✔':'Rejected ✘ — '+((S.last.msgs||[])[0]||'check the reason'),S.last.ok)}}
+let prevIdx=[];
+async function useSug(s){$('cont').value=s.container;oriSel=s.orient;$('autodrop').checked=false;$('x').value=s.x.toFixed(3);$('y').value=s.y.toFixed(3);$('z').value=s.z.toFixed(3);buildOri();updGhost();toast('Loaded suggestion',true)}
+$('place').onclick=()=>{if(!S.pool.length)return;act('/api/step',{method:'POST',body:JSON.stringify({item_idx:Math.min(sel,S.pool.length-1),container_idx:+$('cont').value,place_pos:[+$('x').value,+$('y').value,+$('z').value],orientation:oriSel})})};
+$('agent').onclick=()=>act('/api/agent_step');$('undo').onclick=()=>act('/api/undo');$('reset').onclick=()=>{prevIdx=[];lastIdx=null;act('/api/reset')};
+$('export').onclick=async()=>{const h=await api('/api/history');navigator.clipboard&&navigator.clipboard.writeText(JSON.stringify(h));toast('Copied '+h.length+' moves',true)};
+$('auto').onclick=()=>{if(timer){clearInterval(timer);timer=null;$('auto').textContent='▶ Auto-run agent';return}$('auto').textContent='⏹ Stop';timer=setInterval(async()=>{if(S.done){clearInterval(timer);timer=null;$('auto').textContent='▶ Auto-run agent';return}await act('/api/agent_step')},450)};
+$('suggest').onclick=async()=>{if(!S.pool.length)return;sugs=await api('/api/suggest?item='+sel);sugs=sugs.slice(0,6);if(!sugs.length){toast('No valid spot found for this bag',false)}else{toast('Numbered blue dots on the top view = suggestions (click one)',true)}drawAll()};
+['x','y','z'].forEach(id=>$(id).addEventListener('input',()=>{if(id!='z')$('autodrop').checked&&null;updGhost()}));['xs','ys','zs'].forEach(id=>$(id).addEventListener('input',()=>{$({xs:'x',ys:'y',zs:'z'}[id]).value=$(id).value;if(id=='zs')$('autodrop').checked=false;afterChange()}));
+$('cont').addEventListener('change',afterChange);$('mirror').addEventListener('change',drawAll);$('autodrop').addEventListener('change',afterChange);
+document.addEventListener('keydown',e=>{if(['INPUT','SELECT'].includes(document.activeElement.tagName)&&!e.key.startsWith('Arrow'))return;const st=e.shiftKey?.05:.01;let m=true;
+  if(e.key=='ArrowLeft')$('x').value=(+$('x').value-st).toFixed(3);else if(e.key=='ArrowRight')$('x').value=(+$('x').value+st).toFixed(3);else if(e.key=='ArrowUp')$('y').value=(+$('y').value+st).toFixed(3);else if(e.key=='ArrowDown')$('y').value=(+$('y').value-st).toFixed(3);
+  else if(e.key=='PageUp'){$('z').value=(+$('z').value+st).toFixed(3);$('autodrop').checked=false}else if(e.key=='PageDown'){$('z').value=(+$('z').value-st).toFixed(3);$('autodrop').checked=false}
+  else if(e.key=='r'||e.key=='R'){oriSel=(oriSel+1)%6;buildOri()}else if(e.key=='['){sel=Math.max(0,sel-1);oriSel=0;buildOri();render2();m=false}else if(e.key==']'){sel=Math.min(S.pool.length-1,sel+1);oriSel=0;buildOri();render2();m=false}
+  else if(e.key=='Enter'){$('place').click();m=false}else if(e.key=='s'||e.key=='S'){$('suggest').click();m=false}else if(e.key=='a'||e.key=='A'){$('agent').click();m=false}else if(e.key=='u'||e.key=='U'){$('undo').click();m=false}else m=false;
+  if(m){e.preventDefault();afterChange()}});
+document.addEventListener('mousemove',e=>{const t=$('tip');let f=null;for(const h of hit){if(e.target!==h.cv)continue;const r=h.cv.getBoundingClientRect(),px=(e.clientX-r.left)*h.cv.width/r.width,py=(e.clientY-r.top)*h.cv.height/r.height;if(px>=h.x0&&px<=h.x1&&py>=h.y0&&py<=h.y1)f=h.b}
+  if(f){t.style.display='block';t.style.left=(e.clientX+14)+'px';t.style.top=(e.clientY+14)+'px';t.innerHTML='<b>bag #'+f.index+'</b>'+(f.soft?' · soft':'')+(f.prio?' · priority':'')+'<br>'+f.dims.join(' × ')+' m · '+f.mass+' kg<br>centre ('+f.c.map(v=>v.toFixed(2)).join(', ')+')'}else t.style.display='none'});
+if(localStorage.getItem('helpClosed')==='1')$('help').open=false;$('help').addEventListener('toggle',()=>localStorage.setItem('helpClosed',$('help').open?'0':'1'));
+(async()=>{$('x').value=0;$('y').value=0;$('z').value=0.2;S=await api('/api/state');prevIdx=S.containers.flatMap(c=>c.bags).map(b=>b.index);render()})();
+window.addEventListener('resize',drawAll);
+</script></body></html>

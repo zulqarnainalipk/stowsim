@@ -1,0 +1,3 @@
+-r requirements.txt
+# needed only to regenerate / inspect configs/item_params.xlsx
+openpyxl>=3.1

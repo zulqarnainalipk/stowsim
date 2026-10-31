@@ -237,7 +237,9 @@ def run(task_cfg, agent_path, shake=True, verbose=False, policy_limit=None, suit
     result = dict(fill=report['fill_score'], placed_frac=report['num_placed_items'], status=info.get('status'), steps=steps,
                   policy_max_s=policy_max, optimize_s=opt_time, metrics=metrics, shake=shaken, wall_s=time.time() - t0,
                   scores=dict(fill=report['fill_score'], cog=cog, stability=stability, placement=placement),
-                  diag=getattr(agent, 'diag', None), suite=suite_result)
+                  diag=getattr(agent, 'diag', None), suite=suite_result, n_discarded=getattr(env, 'n_discarded', 0),
+                  opt_iterations=getattr(agent, 'last_nit', None),
+                  traj=getattr(agent, 'traj', None) if os.environ.get('LEARNED_MODE') == 'sample' else None)   # decision records for training
     try:
         env.close()
     except Exception:

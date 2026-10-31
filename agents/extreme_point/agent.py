@@ -215,7 +215,8 @@ class W:
     max_soft_stack = 2   # maximum number of soft bags stacked on each other
     max_slender = 1.3    # maximum height / smallest-base-side ratio in the strict tier
     align = 1            # also generate candidates aligned with the edges of placed bags
-    class_rule = 1       # forbid standard bags on soft / priority bags in the strict tier (0 = ablation)
+    class_rule = 1       # forbid standard bags on soft / priority bags in the strict tier (0 = ablation, 2 = allowed with support >= restricted_support)
+    restricted_support = 0.9   # support share a standard bag needs to rest on a soft or priority bag when class_rule == 2
     # --- bag selection (online) ---
     selm = 0.6           # preference for heavy bags
     selv = 0.6           # preference for large bags
@@ -402,7 +403,7 @@ class Packer:
                 zb = np.maximum(base, np.where(use, btop[None, :], -1e9).max(1))
                 # class conflicts: bag would end up above a restricted bag
                 bad = ov & ((B.soft[None, :] & (not soft)) | (B.prio[None, :] & (not prio)))
-                if not self.desp and W.class_rule:
+                if not self.desp and W.class_rule == 1:
                     valid &= ~bad.any(1)
                 sup_mask = use & (np.abs(btop[None, :] - zb[:, None]) < 0.0045)
                 sup = np.where(sup_mask, ox * oy, 0.0).sum(1)
@@ -410,6 +411,8 @@ class Packer:
                 frac = np.where(on_base, 1.0, sup / (dx * dy))
                 supsoft = np.where(sup_mask & B.soft[None, :], ox * oy, 0.0).sum(1) / (dx * dy)
                 supsoft = np.where(on_base, 0.0, supsoft)
+                if not self.desp and W.class_rule == 2:   # limited stacking: a standard bag may rest on a soft or priority bag if it is well supported
+                    valid &= (~bad.any(1)) | (frac >= W.restricted_support)
                 if soft:
                     sdm = np.where(sup_mask & B.soft[None, :], B.sd[None, :], 0).max(1)
                     valid &= (sdm + 1) <= (W.max_soft_stack if strict else W.max_soft_stack + (3 if self.desp else 1))
@@ -834,8 +837,9 @@ class Agent:
             return self._optimize_fixed(item_list)
         import random
         t0 = _now()
-        deadline = t0 + self.OPT_BUDGET
-        self._hard_dl = t0 + min(self.OPT_BUDGET + 12.0, 172.0)
+        iters = int(_os.environ.get('EP_OPT_ITERS', '0') or 0)   # > 0: stop after this many search iterations, not after a time budget (machine independent)
+        deadline = t0 + (1e9 if iters > 0 else self.OPT_BUDGET)
+        self._hard_dl = t0 + (1e9 if iters > 0 else min(self.OPT_BUDGET + 12.0, 172.0))
         items = [dict(it) for it in item_list]
         cms = [CM(c) for c in self.init_containers]
         self.packer.cms = cms
@@ -890,9 +894,10 @@ class Agent:
         nit = 0
         nabort = 0
         bvol0 = bvol
-        while _now() + avg_eval < search_dl:
+        while (nit < iters) if iters > 0 else (_now() + avg_eval < search_dl):
             nit += 1
-            frac_t = (_now() - t_start) / span
+            self.last_nit = nit   # number of search iterations done so far (reported with the result)
+            frac_t = (nit / iters) if iters > 0 else (_now() - t_start) / span
             if W.sa_t0 > 0:
                 if frac_t > W.sa_end and not reset_done:
                     # final phase: greedy from the best order found so far

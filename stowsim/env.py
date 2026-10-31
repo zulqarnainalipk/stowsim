@@ -32,6 +32,10 @@ class GroundHandlingEnv(gym.Env):
         self.render_mode = render_mode
         self.config = config
         self.optimize = config['agent']['optimize']
+        # optional episode rule: a bag that cannot be placed (no placement found, blocked path, collapse) is discarded and loading goes on
+        # with the next bag, instead of ending the episode (default: the episode ends)
+        self.continue_after_reject = bool(config.get('episode', {}).get('continue_after_reject', False))
+        self.n_discarded = 0
         self.verbose = verbose
 
 
@@ -111,6 +115,11 @@ class GroundHandlingEnv(gym.Env):
         # reset PyBullet
         self.client.resetSimulation()
         self.client.setPhysicsEngineParameter(deterministicOverlappingPairs=1)
+        physics = self.config.get('physics', {})   # optional engine settings (defaults: PyBullet's own time step and solver iterations)
+        if physics.get('time_step') is not None:
+            self.client.setPhysicsEngineParameter(fixedTimeStep=float(physics['time_step']))
+        if physics.get('solver_iterations') is not None:
+            self.client.setPhysicsEngineParameter(numSolverIterations=int(physics['solver_iterations']))
         self.client.setGravity(0, 0, -9.8) # set gravity
         self.client.loadURDF('plane.urdf') # create the floor
 
@@ -219,10 +228,18 @@ class GroundHandlingEnv(gym.Env):
         is_placed_safe = False
         is_valid = False
 
+        def rejected():
+            """The action failed: end the episode, or discard the bag and go on when continue_after_reject is set."""
+            if self.continue_after_reject:
+                self.stream_manager.pop_and_refill(item_idx)
+                self.n_discarded += 1
+                return False
+            return True
+
         is_included = self.validator.check_inclusion(target_container, target_item, global_pos, target_orn_idx)
 
         if not is_included:
-            terminated = True
+            terminated = rejected()
         else:
             is_valid = self.validator.check_transport_path(target_container, target_item, global_pos, target_orn_idx)
             if is_valid:
@@ -234,9 +251,9 @@ class GroundHandlingEnv(gym.Env):
 
                 else:
                     ## failure: the episode ends
-                    terminated = True
+                    terminated = rejected()
             else:
-                terminated = True
+                terminated = rejected()
 
         ## finish when all bags have been loaded
         if self.stream_manager.is_empty():

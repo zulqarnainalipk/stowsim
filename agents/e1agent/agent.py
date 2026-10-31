@@ -32,6 +32,8 @@ VARIANTS = {
     'ignore_support_cost': dict(frac=0.0, z=0.0),
     'class_off': dict(class_rule=0),
     'softstack1': dict(max_soft_stack=1),
+    'class_soft90': dict(class_rule=2, restricted_support=0.9),   # standard bag on a soft or priority bag allowed with support share >= 0.9
+    'class_soft75': dict(class_rule=2, restricted_support=0.75),
 }
 _TOUCHED = sorted({k for v in VARIANTS.values() for k in v})
 _DEFAULTS = {k: getattr(base.W, k) for k in _TOUCHED}

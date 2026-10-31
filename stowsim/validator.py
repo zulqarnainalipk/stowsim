@@ -90,6 +90,7 @@ class PlacementValidator(BaseValidator):
         """
         if item is None:
             return False
+        step_len = float(self.config.get('path_step', step_len))   # discretisation of the insertion path (m); default 1 cm
 
         # save the current state before carrying the bag
         original_lwh =[item.length, item.width, item.height]

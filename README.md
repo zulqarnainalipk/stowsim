@@ -31,6 +31,7 @@ StowSim is designed to study questions such as:
 - Physics-validated actions: inclusion test, insertion-path test (including shelves and ceiling
   clearance), and a settling test after placement.
 - Online mode (pool of `k` visible bags) and offline mode (the agent reorders the whole sequence).
+- Optional settings, off by default: insertion-path step length (`validator.path_step`), engine time step and solver iterations (`physics`), discard a rejected bag and continue (`episode.continue_after_reject`), limited stacking on soft bags (class rule 2) and an iteration budget for the offline search (`EP_OPT_ITERS`) in the reference agent. See the [specification](docs/specification.md) and the [agent guide](docs/agents.md).
 - Multiple containers, optional shelf, priority containers, soft and priority bags, pre-loaded bags.
 - Process isolation with time and memory limits for fair agent evaluation.
 - A strong reference agent (`agents/extreme_point`) and an agent template (`agents/base`).

@@ -197,6 +197,17 @@ The simulator performs the placement validation above at every step. If it fails
 - `start_z`: 0.08 `[m]`
 - `settle_wait_step`: 300
 
+Optional settings (all absent by default, which gives the behaviour described above; they were added for the sensitivity experiments of the benchmark study):
+
+| Section | Key | Meaning |
+| --- | --- | --- |
+| `validator` | `path_step` | Step length `[m]` of the discretised insertion path; default 0.01 (1 cm). A coarser step is faster but can miss thin obstacles |
+| `physics` | `time_step` | PyBullet fixed time step `[s]`; default PyBullet's own (1/240 s). Raise `validator.settle_wait_step` in proportion to keep the simulated settling time |
+| `physics` | `solver_iterations` | PyBullet `numSolverIterations`; default PyBullet's own |
+| `episode` | `continue_after_reject` | `true`: a rejected action discards the bag (counted in `env.n_discarded`) and the episode goes on with the next bag, instead of ending. Default `false` (the first rejected action ends the episode) |
+
+The class rule of the reference agent (standard bag on a soft or priority bag) is an agent setting, not a validator setting; see the [agent guide](agents.md).
+
 ### `Camera` (depth map / visualisation)
 
 Photographs the container state and outputs image data. It is instantiated for two uses: observation and visualisation.

@@ -1,8 +1,8 @@
 153f99cb0dc5caf3a19604714e27cd66  .gitignore
-a412e14db6227a4e11057fa689baa610  CHANGELOG.md
+183b8a5fa6e4f696c571a84541b70c20  CHANGELOG.md
 e809def580e8d4d71e70cf76ae05f8bc  CITATION.cff
 e257506c8ba8e46123db27436ad228f8  LICENSE
-39c256915f7df96e431ba5bb61f7a848  README.md
+6505eb8662d56e6b41a030da2d49be45  README.md
 c2adf49cfc73b6b0898955f2a88a960b  agents/README.md
 d41d8cd98f00b204e9800998ecf8427e  agents/__init__.py
 d41d8cd98f00b204e9800998ecf8427e  agents/anytime/__init__.py
@@ -33,13 +33,13 @@ bf3aff84f0e1e77a227b0450a0210621  docker/Dockerfile
 e5d297c3f152fec0d752112bce3c6a72  docker/README.md
 dae77e70becc0de97fcba210307811d8  docker/docker-compose.yml
 860c80e840622c726d5ea5681fe2bcb0  docs/README.md
-0fbadf08d18c095224ea6822919f5ee3  docs/agents.md
+2826a8a09a701d9ba6b4ec5cddb4b08f  docs/agents.md
 5d24270660488872e48919e572d1e1f3  docs/architecture.md
 df4c2ff916f850a3db99c5ffff4fcc62  docs/development.md
 30aaebc8480750f102c3a937f14bea1e  docs/images/flow.png
 359eae4c3d4f8610645f1f79f7ad2597  docs/images/make_flow.py
-f1bff04f41f708855d7eff2bc5d6bea6  docs/specification.md
-4a3a695dea7c6b7009a0f51bd52f3143  docs/tools.md
+770b02c3876b40d5bc54fb35ff3bc455  docs/specification.md
+45d3d9c10dbe9f2ee52735519583a79f  docs/tools.md
 47fa492529a9fb94b320edec64b6be23  docs/visualizer.md
 8b8f5fb1d754090e980b1fe576c409eb  pyproject.toml
 4e47fdf3dfdc2141644443511e9b1ba4  requirements-dev.txt
@@ -58,7 +58,7 @@ c0ff616d757048788e1104feb4ac3e99  stowsim/evaluator.py
 093e4753a5ad12e75840b28025da09a5  stowsim/runner.py
 98893ec68f7135af5fe3a2380f4d9f26  stowsim/utils.py
 27a27893582fd1136bdadd4cb73cfa07  stowsim/validator.py
-9ef5857a93789f47b885267b4b6fd6ce  tests/README.md
+a2f9b3570bd2ca07f9061804f3afc160  tests/README.md
 d41d8cd98f00b204e9800998ecf8427e  tests/__init__.py
 4aced9977f782f85b628fd06e469f57c  tests/_helpers.py
 c1da0371a5d756bcf7557ca0747bc993  tests/test_environment.py

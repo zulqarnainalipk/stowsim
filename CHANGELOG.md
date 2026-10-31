@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.0, additions of 2026-10-31
+
+Options added for the sensitivity experiments of the benchmark study; every option is off by default and the default behaviour is unchanged (checked by `tests/test_options.py`).
+
+- Validator: `path_step` (step length of the insertion path, default 1 cm).
+- Engine: optional `physics` section of the configuration (`time_step`, `solver_iterations`).
+- Episode: `episode.continue_after_reject` discards a rejected bag and goes on (`env.n_discarded`); default is to end the episode at the first rejection.
+- Reference agent: class rule `2` (limited stacking: a standard bag may rest on a soft or priority bag when its support share is at least `restricted_support`), variants `class_soft90` and `class_soft75`; `EP_OPT_ITERS` (iteration budget of the offline order search, independent of machine speed); `opt_iterations` reported by `tools.run_agent`.
+- Tests: 17 tests (new `tests/test_options.py`).
+
 ## 0.1.0 (2026-10-30)
 
 First public release.

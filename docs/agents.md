@@ -50,7 +50,9 @@ Rules of the game worth remembering when designing an agent:
 
 | Switch | Effect |
 | --- | --- |
-| `E1_VARIANT` | `ref`, `norollout`, `support50`, `support30`, `support90`, `slender3`, `softstack4`, `softstack1`, `heavy_first`, `nosoftpen`, `ignore_support_cost`, `class_off`; combine with `+` |
+| `E1_VARIANT` | `ref`, `norollout`, `support50`, `support30`, `support90`, `slender3`, `softstack4`, `softstack1`, `heavy_first`, `nosoftpen`, `ignore_support_cost`, `class_off`, `class_soft90`, `class_soft75`; combine with `+` |
+| class rule (`W.class_rule`, `W.restricted_support`) | `1` (default): a standard bag may not rest on a soft or priority bag in the strict tier; `0`: allowed (variant `class_off`); `2`: limited stacking, allowed when the standard bag has a support share of at least `restricted_support` (0.9 in `class_soft90`, 0.75 in `class_soft75`) |
+| `EP_OPT_ITERS` | Offline order search: stop after this many search iterations instead of after the time budget `EP_OPT_BUDGET`. The result then does not depend on the machine speed (unset or 0: time budget). The number of iterations used is reported as `opt_iterations` by `tools.run_agent` |
 | `EP_FIXED_ORDER`, `EP_FIXED_HORIZON`, `EP_FIXED_OPTIONS` | Known-items regime: the whole list is known and the arrival order is kept; each bag compares its best placement and a few alternatives by a greedy continuation over the next `EP_FIXED_HORIZON` known bags |
 | `EP_CONSTANTS` | JSON of module constants; the insertion-path constants `START_Z`, `ENV_SAFETY`, `PATH_M`, `SIDE` must be changed together with the validator's `start_z` and `safety_margin` (the experiment runner does this) |
 | `LEARNED_MODE` | `greedy` or `sample` (sampling records a trajectory for training) |

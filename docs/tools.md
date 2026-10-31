@@ -19,6 +19,9 @@ python -m tools.run_agent --agent agents/extreme_point --config configs/sample_c
 Output (JSON): `fill`, `placed_frac`, `status` of the last step, `policy_max_s`, `optimize_s`,
 `metrics` (`cog_mean_height_frac`, `soft_covered`, `prio_covered`, `prio_in_wrong_container`, `n_items`),
 `shake` (displacement statistics) and `scores` (fill, cog, stability, placement on a 0-100 scale).
+Also reported: `n_discarded` (bags discarded when `episode.continue_after_reject` is set), `opt_iterations`
+(iterations of the offline order search, see `EP_OPT_ITERS` in the [agent guide](agents.md)), and `diag`, `suite`
+and `traj` (planner counters, shaking suite and training records, used by the benchmark study; `null` otherwise).
 `fill` is computed with a looser inclusion margin than the validator uses, so bags resting on the floor
 or touching a wall are counted.
 
